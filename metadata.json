@@ -1,0 +1,6 @@
+{
+  "name": "DevPilot AI — Agentic Repository Intelligence Platform",
+  "description": "Multi-agent repository intelligence and automated debugging platform powered by Gemini RAG, code parsing, and verifiable patch workflows.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
