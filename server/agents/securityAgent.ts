@@ -87,7 +87,7 @@ Return strictly valid JSON:
   const lowCount = findings.filter(f => f.severity === 'low').length;
 
   return {
-    summary: result.summary || 'Security review completed.',
+    summary: result.data?.summary || 'Security review completed.',
     findings,
     criticalCount,
     highCount,

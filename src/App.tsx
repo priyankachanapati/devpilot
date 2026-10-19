@@ -10,11 +10,22 @@ import { AgenticDebuggerView } from './views/AgenticDebuggerView.tsx';
 import { SecurityReviewView } from './views/SecurityReviewView.tsx';
 import { PatchReviewView } from './views/PatchReviewView.tsx';
 import { AnalysisHistoryView } from './views/AnalysisHistoryView.tsx';
+import { DiagnosticsView } from './views/DiagnosticsView.tsx';
 
 export default function App() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [activeProject, setActiveProject] = useState<Project | null>(null);
-  const [currentView, setCurrentView] = useState<ActiveView>('dashboard');
+  const [currentView, setCurrentView] = useState<ActiveView>(() => {
+    try {
+      const saved = sessionStorage.getItem('devpilot_active_view');
+      if (saved && ['dashboard', 'explorer', 'assistant', 'debugger', 'security', 'patches', 'history', 'diagnostics'].includes(saved)) {
+        return saved as ActiveView;
+      }
+    } catch {
+      // Ignore
+    }
+    return 'dashboard';
+  });
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isIndexing, setIsIndexing] = useState(false);
@@ -90,19 +101,28 @@ export default function App() {
     }
   };
 
+  const navigateToView = (view: ActiveView) => {
+    setCurrentView(view);
+    try {
+      sessionStorage.setItem('devpilot_active_view', view);
+    } catch {
+      // Ignore
+    }
+  };
+
   const handleStartInvestigation = (prompt: string) => {
     setDebuggerPrompt(prompt);
-    setCurrentView('debugger');
+    navigateToView('debugger');
   };
 
   const handleNavigateToPatch = (patchId: string) => {
     setSelectedPatchId(patchId);
-    setCurrentView('patches');
+    navigateToView('patches');
   };
 
   const handleSendFileToDebugger = (filePath: string, snippet: string) => {
     setDebuggerPrompt(`Investigate and verify code behavior in ${filePath}:\n${snippet}`);
-    setCurrentView('debugger');
+    navigateToView('debugger');
   };
 
   return (
@@ -124,7 +144,7 @@ export default function App() {
       <div className="flex-1 flex overflow-hidden">
         <Sidebar
           currentView={currentView}
-          onSelectView={v => setCurrentView(v)}
+          onSelectView={v => navigateToView(v)}
           collapsed={sidebarCollapsed}
           onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
           patchesCount={patchesCount}
@@ -135,7 +155,7 @@ export default function App() {
           {currentView === 'dashboard' && (
             <DashboardView
               project={activeProject}
-              onNavigate={v => setCurrentView(v)}
+              onNavigate={v => navigateToView(v)}
               onOpenNewProject={() => setIsNewModalOpen(true)}
               onStartInvestigation={handleStartInvestigation}
             />
@@ -186,6 +206,14 @@ export default function App() {
               onSelectSession={sessionId => {
                 // Handle session selection
               }}
+            />
+          )}
+
+          {currentView === 'diagnostics' && (
+            <DiagnosticsView
+              project={activeProject}
+              onTriggerIndex={handleTriggerIndex}
+              isIndexing={isIndexing}
             />
           )}
         </main>

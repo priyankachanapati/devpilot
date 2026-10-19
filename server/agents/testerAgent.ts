@@ -116,7 +116,7 @@ Return strictly valid JSON:
   }
 
   return {
-    summary: result.summary || `Executed ${executedTestCases.length} automated test cases in sandboxed runner.`,
+    summary: result.data?.summary || `Executed ${executedTestCases.length} automated test cases in sandboxed runner.`,
     testCases: executedTestCases,
     allPassed,
     executedCount: executedTestCases.length,

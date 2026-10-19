@@ -22,14 +22,26 @@ export async function runDebuggerAgent(
     .map(c => `File: ${c.filePath} (L${c.startLine}-L${c.endLine})\n\`\`\`${c.language}\n${c.content}\n\`\`\``)
     .join('\n\n');
 
+  const verifiedFactsStr = Array.isArray(analystData?.verifiedFacts)
+    ? analystData.verifiedFacts.join('; ')
+    : typeof analystData?.verifiedFacts === 'string'
+    ? analystData.verifiedFacts
+    : 'None documented';
+
+  const cluesStr = Array.isArray(analystData?.hypothesesClues)
+    ? analystData.hypothesesClues.join('; ')
+    : typeof analystData?.hypothesesClues === 'string'
+    ? analystData.hypothesesClues
+    : 'None documented';
+
   const prompt = `You are Agent 3 (Debugging Agent) in DevPilot AI.
 You are investigating the following issue:
 "${userQuery}"
 
 ANALYST EVIDENCE & FACTS:
-- Execution Path: ${analystData.executionPathSummary}
-- Verified Facts: ${analystData.verifiedFacts.join('; ')}
-- Clues: ${analystData.hypothesesClues.join('; ')}
+- Execution Path: ${analystData?.executionPathSummary || 'Execution path mapped through AST analysis.'}
+- Verified Facts: ${verifiedFactsStr}
+- Clues: ${cluesStr}
 
 SOURCE CODE CHUNKS:
 ${codeSnippet}

@@ -118,6 +118,49 @@ export class LedgerManager {
     assert.strictEqual(safePath, 'etc/passwd');
   });
 
+  // Test 7: MRL dimension alignment for embeddings (768 query vs 3072 stored vectors)
+  await test('Cosine similarity aligns Matryoshka (MRL) dimension vectors (768 vs 3072)', () => {
+    const v768 = generateFallbackEmbedding('concurrency double spend transfer balance', 768);
+    const v3072 = generateFallbackEmbedding('concurrency double spend transfer balance', 3072);
+    // Aligning the first 768 dimensions
+    for (let i = 0; i < 768; i++) {
+      v3072[i] = v768[i];
+    }
+    const sim = cosineSimilarity(v768, v3072);
+    assert.ok(sim > 0.8, `Expected strong alignment between 768 and 3072 vectors, got: ${sim}`);
+  });
+
+  // Test 8: Debugger Agent resilience with partial or empty analyst clues
+  await test('runDebuggerAgent executes safely with partial analyst data', async () => {
+    const { runDebuggerAgent } = await import('../server/agents/debuggerAgent.ts');
+    const mockAnalyst: any = {
+      executionPathSummary: 'Async execution path',
+      callGraph: [],
+      verifiedFacts: undefined, // test resilience against missing array
+      hypothesesClues: undefined,
+      missingEvidenceNotes: [],
+      evidence: [],
+    };
+    const mockChunks = [
+      {
+        id: 'chk_1',
+        projectId: 'payflow-gateway',
+        filePath: 'src/controllers/paymentController.ts',
+        startLine: 1,
+        endLine: 30,
+        content: 'export async function transferBalance() { /* logic */ }',
+        language: 'TypeScript',
+        similarity: 0.95,
+        combinedScore: 0.95,
+      },
+    ];
+
+    const result = await runDebuggerAgent('race condition', mockAnalyst, mockChunks);
+    assert.ok(result, 'Debugger agent should return valid output');
+    assert.ok(result.hypotheses.length > 0, 'Should formulate hypotheses');
+    assert.ok(result.targetedPatch?.files.length > 0, 'Should propose patch files');
+  });
+
   console.log(`\nTest Run Completed: ${passed}/${total} passed.`);
   if (passed !== total) {
     process.exit(1);

@@ -92,5 +92,14 @@ Return strictly valid JSON in this structure:
     fallback
   );
 
-  return result.data || fallback;
+  const data = result.data || fallback;
+  return {
+    ...data,
+    executionPathSummary: data.executionPathSummary || fallback.executionPathSummary,
+    callGraph: Array.isArray(data.callGraph) ? data.callGraph : fallback.callGraph,
+    verifiedFacts: Array.isArray(data.verifiedFacts) ? data.verifiedFacts : fallback.verifiedFacts,
+    hypothesesClues: Array.isArray(data.hypothesesClues) ? data.hypothesesClues : fallback.hypothesesClues,
+    missingEvidenceNotes: Array.isArray(data.missingEvidenceNotes) ? data.missingEvidenceNotes : fallback.missingEvidenceNotes,
+    evidence: Array.isArray(data.evidence) ? data.evidence : fallback.evidence,
+  };
 }

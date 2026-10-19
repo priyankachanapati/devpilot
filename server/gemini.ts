@@ -145,14 +145,16 @@ export function generateFallbackEmbedding(text: string, dimensions = VECTOR_DIME
 }
 
 /**
- * Calculate cosine similarity between two vectors
+ * Calculate cosine similarity between two vectors.
+ * Supports Matryoshka Representation Learning (MRL) dimension alignment (e.g. 768 query vs 3072 chunk).
  */
 export function cosineSimilarity(a: number[], b: number[]): number {
-  if (!a || !b || a.length !== b.length || a.length === 0) return 0;
+  if (!a || !b || a.length === 0 || b.length === 0) return 0;
+  const len = Math.min(a.length, b.length);
   let dot = 0;
   let normA = 0;
   let normB = 0;
-  for (let i = 0; i < a.length; i++) {
+  for (let i = 0; i < len; i++) {
     dot += a[i] * b[i];
     normA += a[i] * a[i];
     normB += b[i] * b[i];
